@@ -1,2 +1,4 @@
+.idea
 server/node_modules
-static/.
+server/static
+client/node_modules

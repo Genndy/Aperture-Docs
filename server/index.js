@@ -1,36 +1,33 @@
-require('dotenv').config()
-const express = require('express')
-const sequelize = require('./db')
-const models = require('./models/models')
-const cors = require('cors')
-
-const fileUpload = require('express-fileupload')
-const router = require('./routes/index')
-const errorHandler = require('./middleware/ErrorHandlingMiddleware')
-const path = require('path')
-
-const PORT = process.env.PORT || 5000
-
+const express = require("express")
+const mongoose = require("mongoose")
+const config = require("config")
+const fileUpload = require("express-fileupload")
+const authRouter = require("./routes/auth.routes")
+const fileRouter = require("./routes/file.routes")
 const app = express()
+const PORT = config.get('serverPort')
+const corsMiddleware = require('./middleware/cors.middleware')
 
-app.use(cors())
-app.use(express.json())
-app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(fileUpload({}))
-app.use('/api', router)
-app.use(errorHandler) // Обработка ошибок, последний Middleware
+app.use(corsMiddleware)
+app.use(express.json())
+app.use(express.static('static'))
+app.use("/api/auth", authRouter)
+app.use("/api/files", fileRouter)
 
-app.get('/', (req, res) => {
-    res.status(200).json({message: 'Aperture docs test init'})
-})
 
 const start = async () => {
     try {
-        await sequelize.authenticate()
-        await sequelize.sync()
-        app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+        await mongoose.connect(config.get("dbUrl"), {
+            useNewUrlParser:true,
+            useUnifiedTopology:true
+        })
+
+        app.listen(PORT, () => {
+            console.log('Server started on port ', PORT)
+        })
     } catch (e) {
-        console.log('start error: ' + e)
+        console.log(e)
     }
 }
 
