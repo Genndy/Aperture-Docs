@@ -6,9 +6,11 @@ import './disk.css'
 import Popup from "./Popup";
 import {setCurrentDir, setFileView, setPopupDisplay} from "../../reducers/fileReducer";
 import Uploader from "./uploader/Uploader";
+import {setPage} from "../../reducers/pageReducer"
 
 const Disk = () => {
     const dispatch = useDispatch()
+    dispatch(setPage('FILES'))
     const currentDir = useSelector(state => state.files.currentDir)
     const loader = useSelector(state => state.app.loader)
     const dirStack = useSelector(state => state.files.dirStack)

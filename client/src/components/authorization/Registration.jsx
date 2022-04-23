@@ -8,7 +8,7 @@ const Registration = () => {
     const [password, setPassword] = useState("")
 
     return (
-        <div className='authorization'>
+        <div className='styled_container authorization'>
             <div className="authorization__header">Регистрация</div>
             <Input value={email} setValue={setEmail} type="text" placeholder="Введите email..."/>
             <Input value={password} setValue={setPassword} type="password" placeholder="Введите пароль..."/>

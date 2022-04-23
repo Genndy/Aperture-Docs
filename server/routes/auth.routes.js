@@ -1,13 +1,13 @@
 const Router = require("express");
-const User = require("../models/User")
 const bcrypt = require("bcryptjs")
 const config = require("config")
 const jwt = require("jsonwebtoken")
 const {check, validationResult} = require("express-validator")
 const router = new Router()
 const authMiddleware = require('../middleware/auth.middleware')
+const {File, User} = require('../models/models')
 const fileService = require('../services/fileService')
-const File = require('../models/File')
+const trueConfAccountManager = require('../services/trueconf/trueConfAccountManager')
 
 router.post('/registration',
     [
@@ -21,14 +21,14 @@ router.post('/registration',
             return res.status(400).json({message: "Uncorrect request", errors})
         }
         const {email, password} = req.body
-        const candidate = await User.findOne({email})
+        const candidate = await User.findOne({where: {email}})
         if(candidate) {
-            return res.status(400).json({message: `User with email ${email} already exist`})
+            return res.status(400).json({message: `User with email ${candidate.email} already exist`})
         }
+        console.log('user: ' + email + ' ' + password)
         const hashPassword = await bcrypt.hash(password, 8)
-        const user = new User({email, password: hashPassword})
-        await user.save()
-        await fileService.createDir(new File({user:user.id, name: ''}))
+        const user = await User.create({email, password: hashPassword})
+        await fileService.createDir(new File({userId : user.id, name: ''}))
         res.json({message: "User was created"})
     } catch (e) {
         console.log(e)

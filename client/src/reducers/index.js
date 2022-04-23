@@ -3,12 +3,14 @@ import {composeWithDevTools } from 'redux-devtools-extension'
 import thunk from "redux-thunk";
 import userReducer from "./userReducer";
 import fileReducer from "./fileReducer";
+import pageReducer from "./pageReducer";
 import uploadReducer from "./uploadReducer";
 import appReducer from "./appReducer";
 
 
 const rootReducer = combineReducers({
     user: userReducer,
+    page: pageReducer,
     files: fileReducer,
     upload: uploadReducer,
     app: appReducer

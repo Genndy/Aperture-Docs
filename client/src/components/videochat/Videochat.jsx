@@ -1,7 +1,13 @@
 import React from 'react';
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {setPage} from "../../reducers/pageReducer"
 // import {deleteAvatar, uploadAvatar} from "../../actions/user"; // Тут надо методы для видосов вытянуть
+
 const Videochat = () => {
+    const dispatch = useDispatch()
+    dispatch(setPage('VIDEOCHAT'))
+    const pageReducerSelector = useSelector(state => state.user.isAuth)
+
     return (<div>
             <div className="header">
                 <div className="logo">
@@ -14,6 +20,7 @@ const Videochat = () => {
                 <div className="main">  
                 <div className="main__left">
                 <div className="videos__group">
+                <iframe allowfullscreen="allowfullscreen" width="720" height="405" allow="microphone; camera; autoplay; display-capture; chatsl fullscreen" src="https://25.44.145.13/c/5288251045"></iframe>
                     <div id="video-grid">
 
                     </div>

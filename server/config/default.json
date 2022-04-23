@@ -2,6 +2,7 @@
   "serverPort" : 5001,
   "dbUrl": "mongodb+srv://ulbitv:qawsed@cloud.91g1g.mongodb.net/cloud?retryWrites=true&w=majority",
   "secretKey": "mern-secket-key",
-  "filePath": "C:\\Users\\ACER\\Desktop\\mern-cloud-disk\\server\\files",
-  "staticPath": "C:\\Users\\ACER\\Desktop\\mern-cloud-disk\\server\\static"
+  "filePath": "C:\\Users\\ASER\\Desktop\\ApertureDocs files",
+  "filePathBackup": "C:\\Users\\ACER\\code\\nodejs\\nodejs project\\Aperture-Docs\\files",  
+  "staticPath": "C:\\Users\\ACER\\code\\nodejs\\nodejs project\\Aperture-Docs\\static"
 }

@@ -1,4 +1,5 @@
 .idea
 server/node_modules
 server/static
+server/files
 client/node_modules

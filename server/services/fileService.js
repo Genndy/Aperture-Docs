@@ -1,11 +1,14 @@
 const fs = require('fs')
-const File = require('../models/File')
+const File = require('../models/models')
 const config = require('config')
 
 class FileService {
 
     createDir(file) {
-        const filePath = `${config.get('filePath')}\\${file.user}\\${file.path}`
+        console.log('FileService create file: ' + file + ', ' + file.userId + '\\' + file.path)
+
+        const filePath = `${config.get('filePath')}\\${file.userId}\\${file.path}`
+
         return new Promise(((resolve, reject) => {
             try {
                 if (!fs.existsSync(filePath)) {
@@ -15,6 +18,7 @@ class FileService {
                     return reject({message: "File already exist"})
                 }
             } catch (e) {
+                console.log(e)
                 return reject({message: 'File error'})
             }
         }))
@@ -30,7 +34,7 @@ class FileService {
     }
 
     getPath(file) {
-        return config.get('filePath') + '\\' + file.user + '\\' + file.path
+        return config.get('filePath') + '\\' + file.userId + '\\' + file.path
     }
 }
 

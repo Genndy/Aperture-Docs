@@ -2,10 +2,14 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  color: #566885;
+  color: #fafafa;
 }
 body {
+  /* 
   background-color: #E9E6E6;
+  */
+  background: radial-gradient(71.73% 100% at 50% 0%, #2C3557 0%, #101225 91.85%);
+  background-attachment: fixed;
 }
 #root {
   width: 100%;

@@ -1,16 +1,17 @@
 const fileService = require('../services/fileService')
 const config = require('config')
 const fs = require('fs')
-const {User, File} = require('../models/models')
+const User = require('../models/User')
+const File = require('../models/file')
 const Uuid = require('uuid')
 
 class FileController {
     async createDir(req, res) {
-        console.log('USER: ' + req.user)
         try {
             const {name, type, parent} = req.body
-            const file = new File({name, type, parent, userId: req.user.id})
-            const parentFile = await File.findOne({where: {parent}})
+            const file = new File({name, type, parent, user: req.user.id})
+//            const parentFile = await File.findOne({_id: parent})
+            const parentFile = await File.findOne({_id: parent})
             if(!parentFile) {
                 file.path = name
                 await fileService.createDir(file)
@@ -32,27 +33,23 @@ class FileController {
         try {
             const {sort} = req.query
             let files
-            console.log(sort)
             switch (sort) {
                 case 'name':
-                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}})
-//                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({name:1})
+                    files = await File.find({user: req.user.id, parent: req.query.parent}).sort({name:1})
                     break
                 case 'type':
- //                   files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({type:1})
-                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.find({user: req.user.id, parent: req.query.parent}).sort({type:1})
                     break
                 case 'date':
-//                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({date:1})
-                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.find({user: req.user.id, parent: req.query.parent}).sort({date:1})
                     break
                 default:
-                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.find({user: req.user.id, parent: req.query.parent})
                     break;
             }
             return res.json(files)
         } catch (e) {
-            console.log(e + " Can not get files")
+            console.log(e)
             return res.status(500).json({message: "Can not get files"})
         }
     }
@@ -72,12 +69,10 @@ class FileController {
 
             let path;
             if (parent) {
-                path = `${config.get('filePath')}\\${user.id}\\${parent.path}\\${file.name}`
+                path = `${config.get('filePath')}\\${user._id}\\${parent.path}\\${file.name}`
             } else {
-                path = `${config.get('filePath')}\\${user.id}\\${file.name}`
+                path = `${config.get('filePath')}\\${user._id}\\${file.name}`
             }
-
-            console.log('Попытка сохранить файл: ' + path)
 
             if (fs.existsSync(path)) {
                 return res.status(400).json({message: 'File already exist'})
@@ -95,7 +90,7 @@ class FileController {
                 size: file.size,
                 path: filePath,
                 parent: parent?._id,
-                userId: user._id
+                user: user._id
             });
 
             await dbFile.save()
@@ -110,7 +105,7 @@ class FileController {
 
     async downloadFile(req, res) {
         try {
-            const file = await File.findOne({_id: req.query.id, userId: req.user.id})
+            const file = await File.findOne({_id: req.query.id, user: req.user.id})
             const path = fileService.getPath(file)
             if (fs.existsSync(path)) {
                 return res.download(path, file.name)

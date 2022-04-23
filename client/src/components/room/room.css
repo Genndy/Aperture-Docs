@@ -1,0 +1,11 @@
+.room {
+    display: flex;
+}
+  
+.room__create_conference {
+        width: 50%;
+    }
+  
+.room__connect_conference {
+        width: 50%;
+}
