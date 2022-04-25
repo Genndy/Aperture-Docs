@@ -1,81 +1,51 @@
 require('dotenv').config()
-// import axios from 'axios'
-// import getApiData from './trueConfConnectionService'
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const https = require('https')
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
-const TRUE_CONF_API_ID = process.env.TRUE_CONF_API_ID
-const TRUE_CONF_API_SECRET = process.env.TRUE_CONF_API_SECRET
 const TRUE_CONF_API_URL = process.env.TRUE_CONF_API_URL
 
-// export const auth =  (email, password) => {
-//     return async dispatch => {
-//         try {
-//             const response = await axios.get(`${TRUE_CONF_API_URL}api/auth/auth`,
-//                 {headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}})
-//         } catch (e) {
+registration = async (login_name, password, email) => {
+    try{
+        console.log('creating account in trueConf: name ' + login_name + ' password: ' + password + ' email: ' + email)
+        let url = TRUE_CONF_API_URL + "api/v3.3/users?access_token=c03ccc7169ba557154c86ad238ed8a9ae23f7bc1";
+        var details = {
+            'login_name': login_name,
+            'password': password,
+            'email': email
+        };
+        var formBody = [];
+        for (var property in details) {
+            var encodedKey = encodeURIComponent(property);
+            var encodedValue = encodeURIComponent(details[property]);
+            formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+        const agent = new https.Agent({
+            rejectUnauthorized: false
+        })
+        console.log('try to fetch: ' + url)
+        
+        var json 
 
-//         }
-//         // try {
-//         //     const response = await axios.get(`${TRUE_CONF_API_URL}api/auth/auth`,
-//         //         {headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}}
-//         //     )
-//         //     dispatch(setUser(response.data.user))
-//         //     localStorage.setItem('true_conf_token', response.data.token)
-//         // } catch (e) {
-//         //     localStorage.removeItem('token')
-//         // }
-//     }
-// }
+        var response = await fetch(url, 
+        { method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: formBody})
 
-// export const registration = async () => {
-//     try {
-//         let url = `${TRUE_CONF_API_URL}oauth2/v1/token`
-//         let json_data = await getApiData(url, "POST", "x-www-form-urlencoded", 
-// 		"grant_type=client_credentials&client_id=" + TRUE_CONF_API_ID + "&client_secret=" + TRUE_CONF_API_SECRET)
-//         console.log(json_data)
-//     } catch (e) {
+//        const data = await response.json()
 
-//     }
-// }
 
-// export const login =  (email, password) => {
-//     return async dispatch => {
-//         try {
-//             const response = await axios.post(`${API_URL}api/auth/login`, {
-//                 email,
-//                 password
-//             })
-//             dispatch(setUser(response.data.user))
-//             localStorage.setItem('token', response.data.token)
-//         } catch (e) {
-//             alert(e.response.data.message)
-//         }
-//     }
-// }
+        console.log(JSON.stringify(data))
+//            https://25.44.145.13/api/v3.3/users?access_token=c03ccc7169ba557154c86ad238ed8a9ae23f7bc1
+//            https://25.44.145.13/api/v3.3/users?access_token=c03ccc7169ba557154c86ad238ed8a9ae23f7bc1
+    }catch(e){
+        console.log(e)
+    }
+}
 
-// export const uploadAvatar =  (file) => {
-//     return async dispatch => {
-//         try {
-//             const formData = new FormData()
-//             formData.append('file', file)
-//             const response = await axios.post(`${API_URL}api/files/avatar`, formData,
-//                 {headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}}
-//             )
-//             dispatch(setUser(response.data))
-//         } catch (e) {
-//             console.log(e)
-//         }
-//     }
-// }
-
-// export const deleteAvatar =  () => {
-//     return async dispatch => {
-//         try {
-//             const response = await axios.delete(`${API_URL}api/files/avatar`,
-//                 {headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}}
-//             )
-//             dispatch(setUser(response.data))
-//         } catch (e) {
-//             console.log(e)
-//         }
-//     }
-// }
+module.exports = {
+    registration
+}

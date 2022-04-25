@@ -46,7 +46,7 @@ const Navbar = () => {
         <div className="navbar">
             <div className="container">
                 <img src={Logo} alt="" className="navbar__logo"/>
-                <div className="navbar__header">Aperture Doc</div>
+                <div className="navbar__header">Аудит</div>
                 {isAuth && <input
                     value={searchName}
                     onChange={e => searchChangeHandler(e)}

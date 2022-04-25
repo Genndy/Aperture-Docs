@@ -2,9 +2,10 @@ const sequelize = require('../db')
 const {DataTypes} = require('sequelize')
 
 const User = sequelize.define('user', {
- //   id: {type: DataTypes.STRING, primaryKey: true},
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     email: {type: DataTypes.STRING, unique: true, allowNull: false},
+    name: {type: DataTypes.STRING, unique: false, allowNull: false},
+    surname: {type: DataTypes.STRING, unique: false, allowNull: false},
     password: {type: DataTypes.STRING, allowNull: false},
     diskSpace: {type: DataTypes.BIGINT, defaultValue: 1024**3*10},
     usedSpace: {type: DataTypes.BIGINT, defaultValue: 0},
@@ -22,8 +23,9 @@ const File = sequelize.define('file', {
 }) 
 
 const Conference = sequelize.define('conference', {
-    id: {type: DataTypes.INTEGER, primaryKey: true,},
+    id: {type: DataTypes.STRING, primaryKey: true,},
     password: {type: DataTypes.STRING, allowNull: false},
+    status: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}
 })
 
 const TrueConfToken = sequelize.define('true_conf_token', {

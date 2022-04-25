@@ -20,15 +20,18 @@ router.post('/registration',
         if (!errors.isEmpty()) {
             return res.status(400).json({message: "Uncorrect request", errors})
         }
-        const {email, password} = req.body
+        const {email, name, surname, password} = req.body
         const candidate = await User.findOne({where: {email}})
         if(candidate) {
             return res.status(400).json({message: `User with email ${candidate.email} already exist`})
         }
         console.log('user: ' + email + ' ' + password)
         const hashPassword = await bcrypt.hash(password, 8)
-        const user = await User.create({email, password: hashPassword})
+        const user = await User.create({email, name, surname, password: hashPassword})
         await fileService.createDir(new File({userId : user.id, name: ''}))
+
+        await trueConfAccountManager.registration(name, password, email)
+
         res.json({message: "User was created"})
     } catch (e) {
         console.log(e)

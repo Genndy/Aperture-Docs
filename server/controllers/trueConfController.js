@@ -1,8 +1,11 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const {TrueConfToken} = require('../models/models')
+const {TrueConfToken, Conference, User} = require('../models/models')
 const https = require('https')
+const {check, validationResult} = require("express-validator")
 
-const trueConf = require('../services/trueconf/trueConfAccountManager');
+const trueConfAccountManager = require('../services/trueconf/trueConfAccountManager');
+const trueConfConferenceManager = require('../services/trueConf/trueConfConferenceManager');
+
 const { text } = require('express');
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
@@ -34,7 +37,6 @@ class TrueConfController{
                 formBody.push(encodedKey + "=" + encodedValue);
             }
             formBody = formBody.join("&");
-            
             const agent = new https.Agent({
                 rejectUnauthorized: false
             })
@@ -52,109 +54,50 @@ class TrueConfController{
             body: formBody})
 
             const data = await response.json()
-//                .then(res => res.text())
-//                .then(text => console.log(expiresIn + JSON.parse(text)["expires_in"]))
             console.log('expiresIn: ' + (expiresIn + data["expires_in"]))
             console.log('access_token: ' + data["access_token"])
-
+            
         }catch(e){
             console.log(e)
             res.send({message: "Server error"})
         }
     }
-
-    // user
-
-    async register(req, res){
+    // conference
+    async createConference(req, res){
         try {
-            // Проверить req на наличие юзера
-            // Отправить данные дальше в trueConf с попыткой создать аккаунт там. Хммм. А чо бы...
-            // Ладно, для теста и этого хватит. Значится, будем делать следующее:
-
-            if (!errors.isEmpty()) { // Надобно получить 
-                return res.status(400).json({message: "Uncorrect request", errors})
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) {
+                return res.status(400).json({message: "Uncorrect request (trueConfController)", errors})
             }
-            const {email, password} = req.body
-            const candidate = await User.findOne({where: {email}})
-            console.log(email)
-            if(candidate) {
-                return res.status(400).json({message: `User with email ${candidate.email} already exist`})
+            const {id, password, userId} = req.body
+            console.log('**********************')
+            console.log('try to create conference')
+            console.log('conferenceId: ' + id + '\npassword: ' + password + '\nuserId: ' + userId)
+            const conferenceCandidate = await Conference.findOne({where: {id}})
+            if(conferenceCandidate){
+                return res.status(400).json({message: 'conference with id ' + conference.id + ' already exist'})
             }
-            const hashPassword = await bcrypt.hash(password, 8)
-            const user = new User({email, password: hashPassword})
-            await user.save()
-            await fileService.createDir(new File({userId : user.id, name: ''}))
-            res.json({message: "User was created"})
+            const user = await User.findOne({where: {id}})
+            if(!user){
+                return res.status(400).json({message: 'doesn\'t (${userId}) exist user cannot create conference'})
+            }
+            const conference = await Conference.create({id, password, user})
+            
+            // Нужно отфутболить юзера в видеоконференцию
+            var conferenceLink = await trueConfConferenceManager.createConference(id, password, user)
+            if(conferenceLink != 'null'){
+                // Отправляем обратно ссылку
+            }else{
+                // Отправляем ошибку
+            }
         } catch (e) {
-            console.log(e)
-            res.send({message: "Server error"})
+            console.log('conferenceController error: ' + e)
         }
     }
-
-    async removeUser(req, res){
-
-    }
-
-    // conference
-
-    async createConference(req, res){}
     async removeConference(req, res){}
-    async conference(req, res){}
-
-    // 
-
-    
-}
-
-async function getApiData(url, request_type, body_encoding = "json", body_content = ""){
-	let response;
-    
-	if (request_type == "GET"){ 
-//        response += 
-		// response = await fetch(url);
-	}
-	else{ 
-		response = await fetch(url, {
-			method: request_type,
-			headers: {
-				"Content-Type": "application/" + body_encoding
-			},
-			body: body_content
-		});
-	}
-
-	let json_data = await getJsonResponse(response);
-
-	return json_data;
-}
-
-async function getJsonResponse(response){
-	if (response.ok){
-		let json_data = await response.json();
-		checkApiError(json_data);
-		return json_data;
-	}
-	else{
-		throw new Error("Error while fetch data " + response.status + ", message = '" + response.message + "'");
-	}
-}
-
-function checkApiError(json_data){
-	if("error" in json_data){
-		console.log(json_data);
-		throw new Error("Request returned error '" + json_data.error + "' with message '" + json_data.error_description + "'");
-	}
+    async conference(req, res){
+        
+    }    
 }
 
 module.exports = new TrueConfController()
-
-// fetch(url, {
-//     method: 'GET',
-//     headers: {
-//         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-//     },
-//     body: formBody})
-//         .then(res => res.text())
-//         .then(text => console.log(text))
-//         .then(res.json({message: res.access_token}))
-// }
