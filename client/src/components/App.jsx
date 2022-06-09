@@ -37,7 +37,7 @@ function App() {
                         : onConference?
                         <Switch>
                             <Route exact path="/videochat" component={Videochat}/>
-                            <Route exact path="/disk" component={Disk}/>
+                            {/* <Route exact path="/disk" component={Disk}/> */}
                             <Route exact path="/profile" component={Profile}/>
                             <Redirect to="/videochat"/>
                         </Switch>
