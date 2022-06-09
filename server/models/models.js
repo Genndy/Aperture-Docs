@@ -10,6 +10,7 @@ const User = sequelize.define('user', {
     diskSpace: {type: DataTypes.BIGINT, defaultValue: 1024**3*10},
     usedSpace: {type: DataTypes.BIGINT, defaultValue: 0},
     avatar: {type: DataTypes.STRING},
+    currentConference: {type: DataTypes.STRING, defaultValue: ''}
 })
 
 const File = sequelize.define('file', {
@@ -25,7 +26,15 @@ const File = sequelize.define('file', {
 const Conference = sequelize.define('conference', {
     id: {type: DataTypes.STRING, primaryKey: true,},
     password: {type: DataTypes.STRING, allowNull: false},
-    status: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}
+    status: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
+    diskSpace: {type: DataTypes.BIGINT, defaultValue: 1024**3*10},
+    usedSpace: {type: DataTypes.BIGINT, defaultValue: 0},
+})
+
+const Message = sequelize.define('message', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    message: {type: DataTypes.STRING, allowNull: false},
+    date: {type: DataTypes.DATE, defaultValue: Date.now()},
 })
 
 const TrueConfToken = sequelize.define('true_conf_token', {
@@ -34,8 +43,14 @@ const TrueConfToken = sequelize.define('true_conf_token', {
     expiresIn: {type: DataTypes.DATE, allowNull: false, defaultValue: Date.now()}
 })
 
-User.hasMany(File)
-File.belongsTo(File)
+Message.belongsTo(User)
+Message.belongsTo(Conference)
+
+Conference.hasMany(File)
+File.belongsTo(Conference)
+
+User.hasMany(Conference)
+Conference.belongsTo(User)
 
 File.hasMany(File, {
     foreignKey: {
@@ -46,12 +61,10 @@ File.belongsTo(File, {
       name: 'parent'
     }})
 
-User.hasOne(Conference)
-Conference.belongsTo(User)
-
 module.exports = {
     User,
     File,
     Conference,
-    TrueConfToken
+    TrueConfToken,
+    Message
 }

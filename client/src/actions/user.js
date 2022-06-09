@@ -2,11 +2,13 @@ import axios from 'axios'
 import {setUser} from "../reducers/userReducer";
 import {API_URL} from "../config";
 
-export const registration = async (email, password) => {
+export const registration = async (email, password, name, surname) => {
     try {
         const response = await axios.post(`${API_URL}api/auth/registration`, {
             email,
-            password
+            password,
+            name,
+            surname
         })
         alert(response.data.message)
     } catch (e) {
@@ -24,6 +26,19 @@ export const login =  (email, password) => {
             dispatch(setUser(response.data.user))
             localStorage.setItem('token', response.data.token)
         } catch (e) {
+            alert(e.response.data.message)
+        }
+    }
+}
+
+export const getUser = () => {
+    console.log('Пробуем получить User')
+    return async dispatch => {
+        try {
+            const user = dispatch(getUser)
+            console.log('Получили!' + user.data.email)
+            return user
+        }catch (e) {
             alert(e.response.data.message)
         }
     }

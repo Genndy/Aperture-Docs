@@ -10,6 +10,7 @@ const fileUpload = require("express-fileupload")
 const authRouter = require("./routes/auth.routes")
 const fileRouter = require("./routes/file.routes")
 const trueConfRouter = require("./routes/trueConf.routes")
+const chatRouter = require("./routes/chat.routes")
 const app = express()
 const PORT = process.env.PORT || 5001
 const corsMiddleware = require('./middleware/cors.middleware')
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use(express.static('static'))
 app.use("/api/auth", authRouter)
 app.use("/api/files", fileRouter)
+app.use("/api/chat", chatRouter)
 app.use("/api/trueConf", trueConfRouter)
 
 

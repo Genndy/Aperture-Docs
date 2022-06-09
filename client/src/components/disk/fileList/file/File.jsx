@@ -10,6 +10,8 @@ const File = ({file}) => {
     const dispatch = useDispatch()
     const currentDir = useSelector(state => state.files.currentDir)
     const fileView = useSelector(state => state.files.view)
+    const currentConference = useSelector(state => state.conference.currentConference)
+    const conferenceID = JSON.parse(currentConference.conference.id)
 
     function openDirHandler(file) {
         if(file.type === 'dir') {
@@ -20,7 +22,7 @@ const File = ({file}) => {
 
     function downloadClickHandler(e) {
         e.stopPropagation()
-        downloadFile(file)
+        downloadFile(file, conferenceID)
     }
 
     function deleteClickHandler(e) {

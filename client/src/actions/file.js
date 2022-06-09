@@ -2,7 +2,9 @@ import axios from 'axios'
 import {addFile, deleteFileAction, setFiles} from "../reducers/fileReducer";
 import {addUploadFile, changeUploadFile, showUploader} from "../reducers/uploadReducer";
 import {hideLoader, showLoader} from "../reducers/appReducer";
+import {useDispatch, useSelector} from "react-redux";
 import {API_URL} from "../config";
+
 
 export function getFiles(dirId, sort) {
     return async dispatch => {
@@ -47,17 +49,22 @@ export function createDir(dirId, name) {
     }
 }
 
-export function uploadFile(file, dirId) {
+export function uploadFile(file, dirId, conferenceID) {
     return async dispatch => {
         try {
             const formData = new FormData()
             formData.append('file', file)
+            formData.append('conference', conferenceID)
             if (dirId) {
                 formData.append('parent', dirId)
             }
+            console.log('4')
             const uploadFile = {name: file.name, progress: 0, id: Date.now()}
+            console.log('5')
             dispatch(showUploader())
+            console.log('6')
             dispatch(addUploadFile(uploadFile))
+            console.log('pre response assigment')
             const response = await axios.post(`${API_URL}api/files/upload`, formData, {
                 headers: {Authorization: `Bearer ${localStorage.getItem('token')}`},
                 onUploadProgress: progressEvent => {
@@ -76,8 +83,9 @@ export function uploadFile(file, dirId) {
 }
 
 
-export async function downloadFile(file) {
-    const response = await fetch(`${API_URL}api/files/download?id=${file._id}`,{
+export async function downloadFile(file, conferenceId) {
+    console.log('downloadFile: ' + JSON.stringify(file))
+    const response = await fetch(`${API_URL}api/files/download?id=${file.id}&conference=${conferenceId}`,{
         headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
         }

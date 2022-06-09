@@ -6,13 +6,9 @@ var image = IcFiles
 
 const IconButton = (props) => {
     const [
-        hover,
-        setHover
     ] = useState(false);
 
     const toggleHover = () => {
-        setHover(!hover);
-        console.log("Hover!")
     };
 
     image = props.image

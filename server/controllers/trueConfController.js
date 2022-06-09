@@ -1,7 +1,8 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const {TrueConfToken, Conference, User} = require('../models/models')
+const {Conference, User, File} = require('../models/models')
 const https = require('https')
 const {check, validationResult} = require("express-validator")
+const fileService = require('../services/fileService')
 
 const trueConfAccountManager = require('../services/trueconf/trueConfAccountManager');
 const trueConfConferenceManager = require('../services/trueConf/trueConfConferenceManager');
@@ -41,9 +42,6 @@ class TrueConfController{
                 rejectUnauthorized: false
             })
             console.log('try to fetch: ' + url)
-
-            var json
-            var token = ''
             var expiresIn = Date.now()
             
             var response = await fetch(url, 
@@ -69,35 +67,77 @@ class TrueConfController{
             if (!errors.isEmpty()) {
                 return res.status(400).json({message: "Uncorrect request (trueConfController)", errors})
             }
-            const {id, password, userId} = req.body
-            console.log('**********************')
-            console.log('try to create conference')
-            console.log('conferenceId: ' + id + '\npassword: ' + password + '\nuserId: ' + userId)
+            const {id, password, email} = req.body
+            const user = await User.findOne({where: {email}})
+            if(!user){
+                return res.status(400).json({message: 'doesn\'t ' + email + ' exist user cannot create conference'})
+            }
             const conferenceCandidate = await Conference.findOne({where: {id}})
             if(conferenceCandidate){
                 return res.status(400).json({message: 'conference with id ' + conference.id + ' already exist'})
             }
-            const user = await User.findOne({where: {id}})
-            if(!user){
-                return res.status(400).json({message: 'doesn\'t (${userId}) exist user cannot create conference'})
-            }
-            const conference = await Conference.create({id, password, user})
-            
-            // Нужно отфутболить юзера в видеоконференцию
-            var conferenceLink = await trueConfConferenceManager.createConference(id, password, user)
+            const userId = user.id
+            const conference = await Conference.create({id, password, userId})
+            console.log('creating file: ' + conference.id)
+            const file = await new File({name : conference.id, path: '\\' + conference.id , type: ''})
+            await fileService.createDir(file)
+            user.conferenceId = conference.id
+            await user.save()
+            await file.save()
+            console.log('file: ' + file)
+            console.log('file conference id: ' + user.conferenceId)
+            const conferenceLink = await trueConfConferenceManager.createConference(id, password, user)
+            console.log('\n**********************')
             if(conferenceLink != 'null'){
-                // Отправляем обратно ссылку
+                console.log('trueConfController conferenceLink: ' + conferenceLink)
+                return res.status(200).json(conferenceLink)
             }else{
-                // Отправляем ошибку
+                res.send({message: "Server error: link didn\'t created"})
             }
         } catch (e) {
             console.log('conferenceController error: ' + e)
         }
     }
-    async removeConference(req, res){}
-    async conference(req, res){
-        
+    async connectToConference(req, res){
+        try {
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) { return res.status(400).json({message: "Uncorrect request (trueConfController)", errors}) }
+            const {id, password, email} = req.body
+            const user = await User.findOne({where: {email}})
+            if(!user){ 
+                return res.status(400).json({message: 'doesn\'t ' + email + ' exist user cannot create conference'})
+            }
+            const conferenceCandidate = await Conference.findOne({where: {id}}) 
+            if(!conferenceCandidate){
+                return res.status(400).json({message: 'conference with id ' + id + ' doesn\'t exist'})
+            }
+            if(conferenceCandidate.password != password) {
+                return res.status(400).json({message: 'invalid password'})
+            }
+            const response = await trueConfConferenceManager.getConference(id)
+            return res.status(200).json(response)
+        } catch (e) {
+            console.log('conferenceController get conference: ' + e)
+        }
     }    
+
+    async removeConference(req, res){
+        try {
+            console.log('Таки запрос пришёл')
+            const errors = validationResult(req)
+            if (!errors.isEmpty()) { return res.status(400).json({message: "Uncorrect request (trueConfController)", errors}) }
+            const {id} = req.body
+            const conferenceCandidate = await Conference.findOne({where: {id}}) 
+            if(!conferenceCandidate){
+                return res.status(400).json({message: 'conference with id ' + id + ' doesn\'t exist'})
+            }
+            const response = await trueConfConferenceManager.deleteConference(id)
+            await conferenceCandidate.destroy()
+            return res.status(200).json(response)
+        } catch (e) {
+            console.log('removeConference error: ' + e)
+        }
+    }
 }
 
 module.exports = new TrueConfController()

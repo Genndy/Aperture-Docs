@@ -1,7 +1,7 @@
 const fileService = require('../services/fileService')
 const config = require('config')
 const fs = require('fs')
-const {User, File} = require('../models/models')
+const {User, File, Conference} = require('../models/models')
 const Uuid = require('uuid')
 
 class FileController {
@@ -9,7 +9,7 @@ class FileController {
         console.log('USER: ' + req.user)
         try {
             const {name, type, parent} = req.body
-            const file = new File({name, type, parent, userId: req.user.id})
+            const file = new File({name, type, parent, conferenceId: req.body.conference})
             const parentFile = await File.findOne({where: {parent}})
             if(!parentFile) {
                 file.path = name
@@ -33,21 +33,24 @@ class FileController {
             const {sort} = req.query
             let files
             console.log(sort)
+
+            console.log('2 file id on fileController: ' + req.query.parent)
+
             switch (sort) {
                 case 'name':
-                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.findAll({where : {conferenceId: req.query.parent}}, {where : {parent: req.query.parent}})
 //                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({name:1})
                     break
                 case 'type':
- //                   files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({type:1})
-                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}})
+//                    files = await File.findAll({where : {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({type:1})
+                    files = await File.findAll({where : {conferenceId: req.query.parent}}, {where : {parent: req.query.parent}})
                     break
                 case 'date':
 //                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}}).sort({date:1})
-                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.findAll({where :  {conferenceId: req.query.parent}}, {where : {parent: req.query.parent}})
                     break
                 default:
-                    files = await File.findAll({where :  {userId: req.user.id}}, {where : {parent: req.query.parent}})
+                    files = await File.findAll({where :  {conferenceId: req.query.parent}}, {where : {parent: req.query.parent}})
                     break;
             }
             return res.json(files)
@@ -60,10 +63,61 @@ class FileController {
     async uploadFile(req, res) {
         try {
             const file = req.files.file
+            const parent = await File.findOne({conferenceId: req.body.conference, _id: req.body.parent})
+            const conference = await Conference.findOne({id:  req.body.conference})
+            const user = await User.findOne({_id: req.user.id})
+            
+            // if (user.usedSpace + file.size > user.diskSpace) {
+            //     return res.status(400).json({message: 'There no space on the disk'})
+            // }
+
+            user.usedSpace = user.usedSpace + file.size
+
+            let path;
+            if (parent) {
+                path = `${config.get('filePath')}\\${req.body.conference}\\${parent.path}\\${file.name}`
+            } else {
+                path = `${config.get('filePath')}\\${req.body.conference}\\${file.name}`
+            }
+
+            console.log('Попытка сохранить файл: ' + path)
+
+            if (fs.existsSync(path)) {
+                return res.status(400).json({message: 'File already exist'})
+            }
+            file.mv(path)
+
+            const type = file.name.split('.').pop()
+            let filePath = file.name
+            if (parent) {
+                filePath = parent.path + "\\" + file.name
+            }
+            const dbFile = new File({
+                name: file.name,
+                type,
+                size: file.size,
+                path: filePath,
+                parent: parent?._id,
+                conferenceId: req.body.conference
+            });
+
+            await dbFile.save()
+            await user.save()
+
+            res.json(dbFile)
+        } catch (e) {
+            console.log(e)
+            return res.status(500).json({message: "Upload error"})
+        }
+    }
+
+    async uploadFileBackup(req, res) {
+        try {
+            const file = req.files.file
 
             const parent = await File.findOne({user: req.user.id, _id: req.body.parent})
             const user = await User.findOne({_id: req.user.id})
-
+            
             if (user.usedSpace + file.size > user.diskSpace) {
                 return res.status(400).json({message: 'There no space on the disk'})
             }
@@ -110,7 +164,7 @@ class FileController {
 
     async downloadFile(req, res) {
         try {
-            const file = await File.findOne({_id: req.query.id, userId: req.user.id})
+            const file = await File.findOne({where: {id: req.query.id, conferenceId: req.query.conference}})
             const path = fileService.getPath(file)
             if (fs.existsSync(path)) {
                 return res.download(path, file.name)

@@ -20,17 +20,21 @@ router.post('/registration',
         if (!errors.isEmpty()) {
             return res.status(400).json({message: "Uncorrect request", errors})
         }
-        const {email, name, surname, password} = req.body
+        const {email, password, name, surname} = req.body
         const candidate = await User.findOne({where: {email}})
         if(candidate) {
             return res.status(400).json({message: `User with email ${candidate.email} already exist`})
         }
-        console.log('user: ' + email + ' ' + password)
+        console.log('creating user: ' + '\n' +
+                    '  email: ' + email + '\n' +
+                    '  password: ' + password + '\n' +
+                    '  name: ' + name + '\n' +
+                    '  surname: ' + surname + '\n')
         const hashPassword = await bcrypt.hash(password, 8)
         const user = await User.create({email, name, surname, password: hashPassword})
-        await fileService.createDir(new File({userId : user.id, name: ''}))
+        // await fileService.createDir(new File({userId : user.id, name: ''}))
 
-        await trueConfAccountManager.registration(name, password, email)
+        await trueConfAccountManager.registration(user.id, user.name, password, user.email)
 
         res.json({message: "User was created"})
     } catch (e) {
@@ -39,12 +43,12 @@ router.post('/registration',
     }
 })
 
-
 router.post('/login',
     async (req, res) => {
         try {
             const {email, password} = req.body
-            const user = await User.findOne({email})
+            const user = await User.findOne({where: {email}})
+            console.log('logging in, email:  ' + email)
             if (!user) {
                 return res.status(404).json({message: "User not found"})
             }
@@ -60,7 +64,8 @@ router.post('/login',
                     email: user.email,
                     diskSpace: user.diskSpace,
                     usedSpace: user.usedSpace,
-                    avatar: user.avatar
+                    avatar: user.avatar,
+                    currentConference: user.conference
                 }
             })
         } catch (e) {

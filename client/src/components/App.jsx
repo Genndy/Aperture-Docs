@@ -5,18 +5,21 @@ import {BrowserRouter, Redirect, Route, Switch} from "react-router-dom";
 import Registration from "./authorization/Registration";
 import Login from "./authorization/Login";
 import {useDispatch, useSelector} from "react-redux";
-import {auth} from "../actions/user";
 import Disk from "./disk/Disk";
 import Profile from "./profile/Profile";
 import Videochat from "./videochat/Videochat";
 import Room from "./room/Room";
+import {handUpConference} from '../actions/conference';
+import {auth} from "../actions/user";
 
 function App() {
     const isAuth = useSelector(state => state.user.isAuth)
+    const onConference = useSelector(state => state.conference.onConference)
     const dispatch = useDispatch()
 
     useEffect(() => {
         dispatch(auth())
+        dispatch(handUpConference())
     }, [])
 
 
@@ -31,13 +34,18 @@ function App() {
                             <Route path="/login" component={Login}/>
                             <Redirect to='/login'/>
                         </Switch>
+                        : onConference?
+                        <Switch>
+                            <Route exact path="/videochat" component={Videochat}/>
+                            <Route exact path="/disk" component={Disk}/>
+                            <Route exact path="/profile" component={Profile}/>
+                            <Redirect to="/videochat"/>
+                        </Switch>
                         :
                         <Switch>
-                            <Route exact path="/" component={Disk}/>
                             <Route exact path="/profile" component={Profile}/>
                             <Route exact path="/room" component={Room}/>
-                            <Route exact path="/videochat" component={Videochat}/>
-                            <Redirect to="/"/>
+                            <Redirect to="/room" />
                         </Switch>
                     }
                 </div>

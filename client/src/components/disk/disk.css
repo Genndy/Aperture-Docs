@@ -1,12 +1,25 @@
 .disk {
-  margin-top: 20px;
-}
-.disk__btns {
   display: flex;
+  flex-direction: column;
+  width: 500px;
+  border-radius: 20px;
+  padding: 30px;
+  background: linear-gradient(180deg, rgba(64, 73, 109, 0.3) 0%, rgba(22, 23, 44, 0.3) 100%);
+  border-radius: 12px;
+}
+
+.disk__settings {
+  display: block;
+  list-style-type: none
 }
 .disk__create {
   margin-left: 10px;
 }
+
+.disk__upload {
+  margin-top: 12px;
+}
+
 .disk__upload-input {
   display: none;
 }
@@ -17,7 +30,7 @@
   margin-left: 10px;
 }
 .disk__select {
-  margin-left: auto;
+  /* margin-left: auto; */
 }
 .disk__list,
 .disk__plate {

@@ -3,7 +3,7 @@ input {
   border-bottom: #566885 solid 3px;
   background: transparent;
   width: 100%;
-  padding: 3px;
+  padding: 2px;
 }
 input:focus {
   outline: none;

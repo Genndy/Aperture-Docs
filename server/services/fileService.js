@@ -5,9 +5,10 @@ const config = require('config')
 class FileService {
 
     createDir(file) {
-        console.log('FileService create file: ' + file + ', ' + file.userId + '\\' + file.path)
+        console.log('FileService create file: ' + file + ', ' + file.conferenceId + '\\' + file.path)
 
-        const filePath = `${config.get('filePath')}\\${file.userId}\\${file.path}`
+//        const filePath = `${config.get('filePath')}\\${file.name}\\${file.path}`
+        const filePath = `${config.get('filePath')}\\${file.path}`
 
         return new Promise(((resolve, reject) => {
             try {
@@ -34,7 +35,7 @@ class FileService {
     }
 
     getPath(file) {
-        return config.get('filePath') + '\\' + file.userId + '\\' + file.path
+        return config.get('filePath') + '\\' + file.conferenceId + '\\' + file.path
     }
 }
 

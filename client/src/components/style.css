@@ -2,12 +2,13 @@
     font-size: 24px;
 }
 
+.input{
+    border-bottom: #566885 solid 2px;
+}
+
 .text_header{
     font-size: 28px;
     font-family: bold;
-}
-
-input{
 }
 
 button{
